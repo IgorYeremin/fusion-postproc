@@ -42,8 +42,7 @@ var mFormat = createFormat({prefix:"M", decimals:0});
 var lFormat = createFormat({prefix:"L", decimals:0});
 var pFormat = createFormat({prefix:"P", decimals:0});
 var qFormat = createFormat({prefix:"Q", decimals:0});
-var rFormat = createFormat({prefix:"R", decimals:10});
-var tFormat = createFormat({prefix:"T", decimals:0});
+var rFormat = createFormat({prefix:"R", decimals:(unit == MM ? 4 : 5)});
 var sFormat = createFormat({prefix:"S", decimals:0});
 
 var xyzFormat = createFormat({decimals:(unit == MM ? 3 : 4)});
@@ -153,8 +152,8 @@ function onOpen() {
     break;
   }
 
-  // Exact Path Mode
-  writeBlock(gFormat.format(61));
+  // motion blending with tolerance
+  writeBlock(gFormat.format(64) + " P" + xyzFormat.format(tolerance));
 
   // non-zero spindle speed
   writeBlock(sFormat.format(123456));
@@ -228,11 +227,6 @@ function onSection() {
       pFormat.format(1), // tool #1
       rFormat.format(tool.jetDiameter / 2 * .995) // fudge factor because generated lead arcs are very close to this radius, and linuxcnc does not like that
     );
-    // this doesn't work because there's no toolchanger in hal
-    // writeBlock(
-    //   tFormat.format(1), // tool #1
-    //   mFormat.format(6) // use tool
-    // );
     writeBlock(
       mFormat.format(61), // override current tool
       qFormat.format(1) // tool #1
