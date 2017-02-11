@@ -1,28 +1,15 @@
-/**
-  Copyright (C) 2015-2016 by Autodesk, Inc.
-  All rights reserved.
 
-  Jet template post processor configuration. This post is intended to show
-  the capabilities for use with waterjet, laser, and plasma cutters. It only
-  serves as a template for customization for an actual CNC.
-
-  $Revision: 41096 dedfcdb5a3d9f4565c4f582d694b822c817b986a $
-  $Date: 2016-06-26 13:51:08 $
-  
-  FORKID {51C1E5C7-D09E-458F-AC35-4A2CE1E0AE32}
-*/
-
-description = "Jet template (DEMO ONLY)";
-vendor = "Autodesk";
-vendorUrl = "http://www.autodesk.com";
-legal = "Copyright (C) 2015-2016 by Autodesk, Inc.";
+description = "Hacklab.to laser cutter";
+vendor = "hacklab.to";
+vendorUrl = "https://hacklab.to";
+legal = "???";
 certificationLevel = 2;
 minimumRevision = 39000;
 
-longDescription = "This post demonstrates the capabilities of the post processor for waterjet, laser, and plasma cutting. You can use this as a foundation when you need a post for a new CNC. Note that this post cannot be used with milling toolpath. You can only use it for 'jet' style toolpath.";
+longDescription = "Uses M3/M5 for laser power, sets tool diameter to allow G41/G42 tool compensation.";
 
 capabilities = CAPABILITY_JET;
-extension = "nc";
+extension = "ngc";
 setCodePage("ascii");
 
 tolerance = spatial(0.002, MM);
@@ -52,6 +39,12 @@ properties = {
 
 var gFormat = createFormat({prefix:"G", decimals:0});
 var mFormat = createFormat({prefix:"M", decimals:0});
+var lFormat = createFormat({prefix:"L", decimals:0});
+var pFormat = createFormat({prefix:"P", decimals:0});
+var qFormat = createFormat({prefix:"Q", decimals:0});
+var rFormat = createFormat({prefix:"R", decimals:10});
+var tFormat = createFormat({prefix:"T", decimals:0});
+var sFormat = createFormat({prefix:"S", decimals:0});
 
 var xyzFormat = createFormat({decimals:(unit == MM ? 3 : 4)});
 var feedFormat = createFormat({decimals:(unit == MM ? 1 : 2)});
@@ -159,6 +152,21 @@ function onOpen() {
     writeBlock(gUnitModal.format(21));
     break;
   }
+
+  // Exact Path Mode
+  writeBlock(gFormat.format(61));
+
+  // non-zero spindle speed
+  writeBlock(sFormat.format(123456));
+
+  // spindle off
+  writeBlock(mFormat.format(5));
+
+  // laser enable on
+  writeBlock(
+    mFormat.format(52),
+    pFormat.format(0)
+  );
 }
 
 function onComment(message) {
@@ -202,22 +210,11 @@ function onSection() {
     onCommand(COMMAND_COOLANT_OFF);
 
     switch (tool.type) {
-    case TOOL_WATER_JET:
-      writeComment("Waterjet cutting.");
-      break;
     case TOOL_LASER_CUTTER:
       writeComment("laser cutting");
       break;
-    case TOOL_PLASMA_CUTTER:
-      writeComment("Plasma cutting");
-      break;
-    /*
-    case TOOL_MARKER:
-      writeComment("Marker");
-      break;
-    */
     default:
-      error(localize("The CNC does not support the required tool."));
+      error(localize("This post processor only support the Laser Cutter tool mode."));
       return;
     }
     writeln("");
@@ -402,9 +399,9 @@ function setDeviceMode(enable) {
   if (enable != deviceOn) {
     deviceOn = enable;
     if (enable) {
-      writeComment("TURN ON CUTTING HERE");
+      writeBlock(mFormat.format(3));
     } else {
-      writeComment("TURN OFF CUTTING HERE");
+      writeBlock(mFormat.format(5));
     }
   }
 }
@@ -601,6 +598,15 @@ function onClose() {
   writeln("");
   
   onCommand(COMMAND_COOLANT_OFF);
+
+  // spindle off
+  writeBlock(mFormat.format(5));
+
+  // laser enable off
+  writeBlock(
+    mFormat.format(53),
+    pFormat.format(0)
+  );
 
   onImpliedCommand(COMMAND_END);
   writeBlock(mFormat.format(30)); // stop program
