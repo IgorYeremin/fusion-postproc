@@ -37,7 +37,7 @@ properties = {
 
 
 
-var gFormat = createFormat({prefix:"G", decimals:0});
+var gFormat = createFormat({prefix:"G", decimals:1});
 var mFormat = createFormat({prefix:"M", decimals:0});
 var lFormat = createFormat({prefix:"L", decimals:0});
 var pFormat = createFormat({prefix:"P", decimals:0});
@@ -223,19 +223,7 @@ function onSection() {
     writeComment("tool.jetDiameter = " + xyzFormat.format(tool.jetDiameter));
     writeComment("tool.jetDistance = " + xyzFormat.format(tool.jetDistance));
     writeBlock(
-      gFormat.format(10),
-      lFormat.format(1), // set tool table
-      pFormat.format(1), // tool #1
-      rFormat.format(tool.jetDiameter / 2 * .995) // fudge factor because generated lead arcs are very close to this radius, and linuxcnc does not like that
-    );
-    // this doesn't work because there's no toolchanger in hal
-    // writeBlock(
-    //   tFormat.format(1), // tool #1
-    //   mFormat.format(6) // use tool
-    // );
-    writeBlock(
-      mFormat.format(61), // override current tool
-      qFormat.format(1) // tool #1
+      "#<_kerf_size> = " + tool.jetDiameter * .995
     );
     writeln("");
 
@@ -476,11 +464,17 @@ function onLinear(_x, _y, _z, feed) {
       pendingRadiusCompensation = -1;
       switch (radiusCompensation) {
       case RADIUS_COMPENSATION_LEFT:
-        writeBlock(gFormat.format(41));
+        writeBlock(
+          gFormat.format(41.1),
+          "D#<_kerf_size>"
+        );
         writeBlock(gMotionModal.format(1), x, y, f);
         break;
       case RADIUS_COMPENSATION_RIGHT:
-        writeBlock(gFormat.format(42));
+        writeBlock(
+          gFormat.format(42.1),
+          "D#<_kerf_size>"
+        );
         writeBlock(gMotionModal.format(1), x, y, f);
         break;
       default:
@@ -617,11 +611,6 @@ function onClose() {
 
   // spindle off
   writeBlock(mFormat.format(5));
-
-  writeBlock(
-    mFormat.format(61), // override current tool
-    qFormat.format(0) // no tool
-  );
 
   // laser enable off
   writeBlock(
