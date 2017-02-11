@@ -188,7 +188,8 @@ function forceAny() {
 function onSection() {
   var insertToolCall = isFirstSection() ||
     currentSection.getForceToolChange && currentSection.getForceToolChange() ||
-    (tool.number != getPreviousSection().getTool().number);
+    (tool.number != getPreviousSection().getTool().number) ||
+    (tool.jetDiameter != getPreviousSection().getTool().jetDiameter);
   
   var retracted = false; // specifies that the tool has been retracted to the safe plane
   var newWorkOffset = isFirstSection() ||
@@ -221,6 +222,21 @@ function onSection() {
 
     writeComment("tool.jetDiameter = " + xyzFormat.format(tool.jetDiameter));
     writeComment("tool.jetDistance = " + xyzFormat.format(tool.jetDistance));
+    writeBlock(
+      gFormat.format(10),
+      lFormat.format(1), // set tool table
+      pFormat.format(1), // tool #1
+      rFormat.format(tool.jetDiameter / 2 * .995) // fudge factor because generated lead arcs are very close to this radius, and linuxcnc does not like that
+    );
+    // this doesn't work because there's no toolchanger in hal
+    // writeBlock(
+    //   tFormat.format(1), // tool #1
+    //   mFormat.format(6) // use tool
+    // );
+    writeBlock(
+      mFormat.format(61), // override current tool
+      qFormat.format(1) // tool #1
+    );
     writeln("");
 
     switch (currentSection.jetMode) {
@@ -601,6 +617,11 @@ function onClose() {
 
   // spindle off
   writeBlock(mFormat.format(5));
+
+  writeBlock(
+    mFormat.format(61), // override current tool
+    qFormat.format(0) // no tool
+  );
 
   // laser enable off
   writeBlock(
