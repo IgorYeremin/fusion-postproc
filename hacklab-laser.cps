@@ -436,11 +436,7 @@ function onMovement(movement) {
     setBeamOn(false);
     break;
   default:
-    if (etchOperation) {
-      qualFeed = properties.etchQuality;
-    } else {
-      qualFeed = 0; // turn off waterjet - used for head down moves
-    }
+    writeComment("Unhandled onMovement: " + movement);
   }
 }
 
