@@ -164,7 +164,7 @@ function onOpen() {
 
   // laser enable on
   writeBlock(
-    mFormat.format(52),
+    mFormat.format(63),
     pFormat.format(0)
   );
 }
@@ -639,7 +639,7 @@ function onClose() {
 
   // laser enable off
   writeBlock(
-    mFormat.format(53),
+    mFormat.format(63),
     pFormat.format(0)
   );
 
