@@ -32,7 +32,8 @@ properties = {
   sequenceNumberIncrement: 5, // increment for sequence numbers
   allowHeadSwitches: true, // output code to allow heads to be manually switched for piercing and cutting
   useRetracts: true, // output retracts - otherwise only output part contours for importing in third-party jet application
-  separateWordsWithSpace: true // specifies that the words should be separated with a white space
+  separateWordsWithSpace: true, // specifies that the words should be separated with a white space
+  cutLeadInOut: false // is the laser on when doing lead-in and lead-out moves?
 };
 
 
@@ -403,12 +404,13 @@ function onParameter(name, value) {
   }
 }
 
-var deviceOn = false;
+var powerOn = false;
+var beamOn = false;
 
-function setDeviceMode(enable) {
-  if (enable != deviceOn) {
-    deviceOn = enable;
-    if (enable) {
+function setBeamOn(enable) {
+  if ((powerOn && enable) != beamOn) {
+    beamOn = enable;
+    if (beamOn) {
       writeBlock(mFormat.format(3));
     } else {
       writeBlock(mFormat.format(5));
@@ -417,7 +419,29 @@ function setDeviceMode(enable) {
 }
 
 function onPower(power) {
-  setDeviceMode(power);
+  powerOn = power;
+}
+
+function onMovement(movement) {
+  switch (movement) {
+  case MOVEMENT_CUTTING:
+  case MOVEMENT_FINISH_CUTTING:
+    setBeamOn(true);
+    break;
+  case MOVEMENT_LEAD_IN:
+  case MOVEMENT_LEAD_OUT:
+    setBeamOn(properties.cutLeadInOut);
+    break;
+  case MOVEMENT_RAPID:
+    setBeamOn(false);
+    break;
+  default:
+    if (etchOperation) {
+      qualFeed = properties.etchQuality;
+    } else {
+      qualFeed = 0; // turn off waterjet - used for head down moves
+    }
+  }
 }
 
 function onRapid(_x, _y, _z) {
@@ -600,7 +624,7 @@ function onCommand(command) {
 }
 
 function onSectionEnd() {
-  setDeviceMode(false);
+  setBeamOn(false);
   forceAny();
 }
 
