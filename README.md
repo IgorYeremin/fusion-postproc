@@ -3,14 +3,14 @@
 Fusion 360 post processor script for the hacklab.to laser cutter.
 
 ## Insallation
-### Windows
-* Copy `hacklab-laser.cps` into `%APPDATA%\Autodesk\Fusion 360 CAM\Posts`
+
+* Download this repository as ZIP file or git clone it
+* Copy `hacklab-laser.cps` into `%APPDATA%\Autodesk\Fusion 360 CAM\Posts` on Windows or `Users/USERNAME/Autodesk/Fusion 360 CAM/Posts` on Mac
 
 ## Use
-* Enable Preview feature "CAM - Waterjet/Laser/Plasma cutter support" in the user preferences menu
 * Create Waterjet/Laser/Plasma step in CAM mode, set type to "Laser cutting"
+* Create laser cutting tool with desired feed rate and diameter for kerf compensation
 * Select Cutting Mode: Through or Etch (Etch just means no kerf compensation, not raster)
-* Set Kerf Width, and Cutting Feedrate
 * Select curves to cut, by default holes should cut counter-clockwise, positive parts - clockwise. Flip direction by clicking red arrow
 * Ignore heights tab
 * Sideways compensation: Left = CCW holes, CW positives, Right is inverse. Center disables kerf compensation.
